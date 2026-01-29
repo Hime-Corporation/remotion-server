@@ -103,7 +103,7 @@ app.post('/render', async (req, res) => {
         serveUrl: bundled,
         id: compositionId,
         inputProps,
-        chromiumExecutable: CHROME_PATH,
+        browserExecutable: CHROME_PATH,
       });
 
       // Override composition settings if provided
@@ -121,7 +121,7 @@ app.post('/render', async (req, res) => {
         codec,
         outputLocation: outputPath,
         inputProps,
-        chromiumExecutable: CHROME_PATH,
+        browserExecutable: CHROME_PATH,
         onProgress: ({ progress }) => {
           const job = jobs.get(jobId);
           if (job) {
@@ -223,7 +223,7 @@ app.post('/render/quick', async (req, res) => {
       serveUrl: bundled,
       id: compositionId,
       inputProps,
-      chromiumExecutable: CHROME_PATH,
+      browserExecutable: CHROME_PATH,
     });
 
     await renderMedia({
@@ -232,7 +232,7 @@ app.post('/render/quick', async (req, res) => {
       codec,
       outputLocation: outputPath,
       inputProps,
-      chromiumExecutable: CHROME_PATH,
+      browserExecutable: CHROME_PATH,
     });
 
     res.download(outputPath, `${compositionId}-${jobId}.${outputFormat}`, (err) => {
