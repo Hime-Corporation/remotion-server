@@ -21,34 +21,30 @@ if (!fs.existsSync(OUTPUT_DIR)) {
 // Store render jobs
 const jobs = new Map();
 
-// Find Chrome Headless Shell binary
-const { execSync } = require('child_process');
+// Use @sparticuz/chromium for ARM64 support
+const chromium = require('@sparticuz/chromium');
 
-function findChromeBinary() {
-  // Check env var first
-  if (process.env.REMOTION_CHROME_EXECUTABLE_PATH && fs.existsSync(process.env.REMOTION_CHROME_EXECUTABLE_PATH)) {
-    return process.env.REMOTION_CHROME_EXECUTABLE_PATH;
-  }
-  // Try to find it
+let chromePath = null;
+
+// Get Chrome path on startup
+(async () => {
   try {
-    const result = execSync('find /app -name "chrome-headless-shell" -type f 2>/dev/null | head -1', { encoding: 'utf-8' }).trim();
-    if (result && fs.existsSync(result)) {
-      console.log('Found Chrome at:', result);
-      return result;
-    }
-  } catch (e) {}
-  // Let Remotion download its own
-  console.log('No Chrome found, letting Remotion manage it');
-  return null;
-}
+    chromePath = await chromium.executablePath();
+    console.log('Chrome path:', chromePath);
+  } catch (e) {
+    console.log('Could not get Chrome path:', e.message);
+  }
+})();
 
-const CHROME_PATH = findChromeBinary();
-const browserOptions = {
-  ...(CHROME_PATH && { browserExecutable: CHROME_PATH }),
-  chromiumOptions: {
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-  },
-};
+// Browser options will be set when Chrome path is available
+function getBrowserOptions() {
+  return {
+    ...(chromePath && { browserExecutable: chromePath }),
+    chromiumOptions: {
+      args: chromium.args,
+    },
+  };
+}
 
 // Health check
 app.get('/health', (req, res) => {
@@ -95,7 +91,7 @@ app.post('/render', async (req, res) => {
         serveUrl: bundled,
         id: compositionId,
         inputProps,
-        ...browserOptions,
+        ...getBrowserOptions(),
       });
 
       await renderMedia({
@@ -104,7 +100,7 @@ app.post('/render', async (req, res) => {
         codec,
         outputLocation: outputPath,
         inputProps,
-        ...browserOptions,
+        ...getBrowserOptions(),
         onProgress: ({ progress }) => {
           const job = jobs.get(jobId);
           if (job) {
@@ -203,7 +199,7 @@ app.post('/render/quick', async (req, res) => {
       serveUrl: bundled,
       id: compositionId,
       inputProps,
-      ...browserOptions,
+      ...getBrowserOptions(),
     });
 
     await renderMedia({
@@ -212,7 +208,7 @@ app.post('/render/quick', async (req, res) => {
       codec,
       outputLocation: outputPath,
       inputProps,
-      ...browserOptions,
+      ...getBrowserOptions(),
     });
 
     res.download(outputPath, `${compositionId}-${jobId}.${outputFormat}`, () => {

@@ -1,6 +1,6 @@
 FROM node:20-bookworm
 
-# Install Linux dependencies for Chrome Headless Shell
+# Install Linux dependencies for Chromium
 RUN apt-get update && apt-get install -y \
     libnss3 \
     libdbus-1-3 \
@@ -22,10 +22,6 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-
-# Download chrome-headless-shell for ARM64 specifically (platform: linux_arm)
-RUN npx @puppeteer/browsers install chrome-headless-shell@stable --platform linux_arm && \
-    find /app -name "chrome-headless-shell" -type f 2>/dev/null
 
 COPY package*.json ./
 RUN npm install
