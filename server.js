@@ -25,12 +25,12 @@ const jobs = new Map();
 const chromePath = process.env.CHROMIUM_PATH || '/usr/bin/chromium';
 console.log('Using Chromium at:', chromePath);
 
-// Browser options for Remotion
+// Browser options for Remotion (Chrome 127+ needs --headless=new)
 function getBrowserOptions() {
   return {
     browserExecutable: chromePath,
     chromiumOptions: {
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--headless=new'],
     },
   };
 }
