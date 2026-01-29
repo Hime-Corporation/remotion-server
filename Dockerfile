@@ -1,33 +1,21 @@
-FROM --platform=linux/amd64 node:20-bookworm
+FROM node:20-bookworm
 
-# Install Linux dependencies for Chromium
+# Install Chromium from apt (has ARM64 support) + dependencies
 RUN apt-get update && apt-get install -y \
-    libnss3 \
-    libdbus-1-3 \
-    libatk1.0-0 \
-    libasound2 \
-    libxrandr2 \
-    libxkbcommon0 \
-    libxfixes3 \
-    libxcomposite1 \
-    libxdamage1 \
-    libgbm1 \
-    libpango-1.0-0 \
-    libcairo2 \
-    libatspi2.0-0 \
-    libcups2 \
+    chromium \
     fonts-liberation \
     fonts-noto-color-emoji \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
+# Skip Puppeteer's bundled Chromium download
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV CHROMIUM_PATH=/usr/bin/chromium
+
 WORKDIR /app
 
 COPY package*.json ./
 RUN npm install
-
-# Pre-download Chromium for Remotion (amd64)
-RUN npx remotion browser ensure
 
 COPY . .
 

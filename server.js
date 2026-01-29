@@ -21,27 +21,16 @@ if (!fs.existsSync(OUTPUT_DIR)) {
 // Store render jobs
 const jobs = new Map();
 
-// Use @sparticuz/chromium for ARM64 support
-const chromium = require('@sparticuz/chromium');
+// Use system Chromium (installed via apt for ARM64 support)
+const chromePath = process.env.CHROMIUM_PATH || '/usr/bin/chromium';
+console.log('Using Chromium at:', chromePath);
 
-let chromePath = null;
-
-// Get Chrome path on startup
-(async () => {
-  try {
-    chromePath = await chromium.executablePath();
-    console.log('Chrome path:', chromePath);
-  } catch (e) {
-    console.log('Could not get Chrome path:', e.message);
-  }
-})();
-
-// Browser options will be set when Chrome path is available
+// Browser options for Remotion
 function getBrowserOptions() {
   return {
-    ...(chromePath && { browserExecutable: chromePath }),
+    browserExecutable: chromePath,
     chromiumOptions: {
-      args: chromium.args,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
     },
   };
 }
