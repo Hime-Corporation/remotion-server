@@ -1,4 +1,4 @@
-FROM node:20-bookworm
+FROM --platform=linux/amd64 node:20-bookworm
 
 # Install Linux dependencies for Chromium
 RUN apt-get update && apt-get install -y \
@@ -25,6 +25,9 @@ WORKDIR /app
 
 COPY package*.json ./
 RUN npm install
+
+# Pre-download Chromium for Remotion (amd64)
+RUN npx remotion browser ensure
 
 COPY . .
 
