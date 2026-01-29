@@ -21,8 +21,10 @@ if (!fs.existsSync(OUTPUT_DIR)) {
 // Store render jobs
 const jobs = new Map();
 
-// Let Remotion manage browser (uses Chrome Headless Shell for ARM64)
+// Use Chrome Headless Shell downloaded via @puppeteer/browsers
+const CHROME_PATH = process.env.REMOTION_CHROME_EXECUTABLE_PATH || null;
 const browserOptions = {
+  ...(CHROME_PATH && { browserExecutable: CHROME_PATH }),
   chromiumOptions: {
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
   },
