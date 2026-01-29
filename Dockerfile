@@ -23,8 +23,8 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Download chrome-headless-shell for ARM64 specifically
-RUN npx @puppeteer/browsers install chrome-headless-shell@stable --platform linux-arm64 && \
+# Download chrome-headless-shell for ARM64 specifically (platform: linux_arm)
+RUN npx @puppeteer/browsers install chrome-headless-shell@stable --platform linux_arm && \
     find /app -name "chrome-headless-shell" -type f 2>/dev/null
 
 COPY package*.json ./
