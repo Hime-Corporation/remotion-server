@@ -1,4 +1,5 @@
-FROM node:20-bookworm
+# Use Debian Bullseye which has older Chromium (supports old headless)
+FROM node:20-bullseye
 
 # Install Chromium and dependencies
 RUN apt-get update && apt-get install -y \
@@ -7,6 +8,9 @@ RUN apt-get update && apt-get install -y \
     fonts-noto-color-emoji \
     curl \
     && rm -rf /var/lib/apt/lists/*
+
+# Check chromium version
+RUN chromium --version || true
 
 WORKDIR /app
 

@@ -22,12 +22,12 @@ if (!fs.existsSync(OUTPUT_DIR)) {
 // Store render jobs
 const jobs = new Map();
 
-// Common browser options for Remotion v4 with Chromium 127+
+// Browser options for older Chromium (Bullseye has Chromium ~90)
 const browserOptions = {
   browserExecutable: CHROME_PATH,
   chromiumOptions: {
     headless: true,
-    args: ['--headless=new', '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
   },
 };
 
