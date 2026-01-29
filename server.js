@@ -13,12 +13,14 @@ app.use(express.json({ limit: '10mb' }));
 const PORT = process.env.PORT || 3000;
 const OUTPUT_DIR = process.env.OUTPUT_DIR || '/tmp/renders';
 const CHROME_PATH = process.env.REMOTION_CHROME_EXECUTABLE_PATH || '/usr/bin/chromium';
+const CHROME_ARGS = ['--headless=new', '--no-sandbox', '--disable-setuid-sandbox'];
 
 // Ensure browser is available without downloading
 (async () => {
   try {
     await ensureBrowser({
       browserExecutable: CHROME_PATH,
+        chromiumOptions: { args: CHROME_ARGS },
       shouldDownloadBrowser: false,
     });
     console.log('✅ Browser configured:', CHROME_PATH);
@@ -104,6 +106,7 @@ app.post('/render', async (req, res) => {
         id: compositionId,
         inputProps,
         browserExecutable: CHROME_PATH,
+        chromiumOptions: { args: CHROME_ARGS },
       });
 
       // Override composition settings if provided
@@ -122,6 +125,7 @@ app.post('/render', async (req, res) => {
         outputLocation: outputPath,
         inputProps,
         browserExecutable: CHROME_PATH,
+        chromiumOptions: { args: CHROME_ARGS },
         onProgress: ({ progress }) => {
           const job = jobs.get(jobId);
           if (job) {
@@ -224,6 +228,7 @@ app.post('/render/quick', async (req, res) => {
       id: compositionId,
       inputProps,
       browserExecutable: CHROME_PATH,
+        chromiumOptions: { args: CHROME_ARGS },
     });
 
     await renderMedia({
@@ -233,6 +238,7 @@ app.post('/render/quick', async (req, res) => {
       outputLocation: outputPath,
       inputProps,
       browserExecutable: CHROME_PATH,
+        chromiumOptions: { args: CHROME_ARGS },
     });
 
     res.download(outputPath, `${compositionId}-${jobId}.${outputFormat}`, (err) => {
