@@ -1,7 +1,8 @@
 FROM node:20-bookworm
 
-# Install browser dependencies for Remotion
+# Install browser dependencies + Chromium for ARM64 compatibility
 RUN apt-get update && apt-get install -y \
+    chromium \
     libnss3 \
     libdbus-1-3 \
     libatk1.0-0 \
@@ -19,6 +20,10 @@ RUN apt-get update && apt-get install -y \
     fonts-liberation \
     fonts-noto-color-emoji \
     && rm -rf /var/lib/apt/lists/*
+
+# Skip Chromium download, use system-installed version
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV REMOTION_CHROME_EXECUTABLE_PATH=/usr/bin/chromium
 
 WORKDIR /app
 
