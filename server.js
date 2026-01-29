@@ -21,8 +21,28 @@ if (!fs.existsSync(OUTPUT_DIR)) {
 // Store render jobs
 const jobs = new Map();
 
-// Use Chrome Headless Shell downloaded via @puppeteer/browsers
-const CHROME_PATH = process.env.REMOTION_CHROME_EXECUTABLE_PATH || null;
+// Find Chrome Headless Shell binary
+const { execSync } = require('child_process');
+
+function findChromeBinary() {
+  // Check env var first
+  if (process.env.REMOTION_CHROME_EXECUTABLE_PATH && fs.existsSync(process.env.REMOTION_CHROME_EXECUTABLE_PATH)) {
+    return process.env.REMOTION_CHROME_EXECUTABLE_PATH;
+  }
+  // Try to find it
+  try {
+    const result = execSync('find /app -name "chrome-headless-shell" -type f 2>/dev/null | head -1', { encoding: 'utf-8' }).trim();
+    if (result && fs.existsSync(result)) {
+      console.log('Found Chrome at:', result);
+      return result;
+    }
+  } catch (e) {}
+  // Let Remotion download its own
+  console.log('No Chrome found, letting Remotion manage it');
+  return null;
+}
+
+const CHROME_PATH = findChromeBinary();
 const browserOptions = {
   ...(CHROME_PATH && { browserExecutable: CHROME_PATH }),
   chromiumOptions: {

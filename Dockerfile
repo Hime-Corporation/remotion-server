@@ -23,11 +23,11 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Download chrome-headless-shell using Puppeteer's official tool
-RUN npx @puppeteer/browsers install chrome-headless-shell@stable
-
-# Find the binary path
-RUN find /app -name "chrome-headless-shell" -type f 2>/dev/null | head -1
+# Download chrome-headless-shell
+RUN npx @puppeteer/browsers install chrome-headless-shell@stable && \
+    echo "=== Chrome installed to ===" && \
+    find /app -name "chrome-headless-shell" -type f 2>/dev/null && \
+    ls -la /app/chrome-headless-shell* 2>/dev/null || true
 
 COPY package*.json ./
 RUN npm install
@@ -36,8 +36,10 @@ COPY . .
 
 RUN mkdir -p /tmp/renders
 
-# Set the browser path (will be in /app/chrome-headless-shell/...)
-ENV REMOTION_CHROME_EXECUTABLE_PATH=/app/chrome-headless-shell/linux-arm64/chrome-headless-shell-linux-arm64/chrome-headless-shell
+# Try to find the actual binary path
+RUN CHROME_PATH=$(find /app -name "chrome-headless-shell" -type f 2>/dev/null | head -1) && \
+    echo "Chrome path: $CHROME_PATH" && \
+    echo "REMOTION_CHROME_EXECUTABLE_PATH=$CHROME_PATH" >> /app/.env
 
 EXPOSE 3000
 
