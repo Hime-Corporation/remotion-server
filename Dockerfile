@@ -1,55 +1,32 @@
-FROM node:20-bookworm
+# Use Playwright image which has Chrome properly configured
+FROM mcr.microsoft.com/playwright:v1.48.0-noble
 
-# Install browser dependencies + Chromium for ARM64 compatibility
-RUN apt-get update && apt-get install -y \
-    chromium \
-    libnss3 \
-    libdbus-1-3 \
-    libatk1.0-0 \
-    libasound2 \
-    libxrandr2 \
-    libxkbcommon-dev \
-    libxfixes3 \
-    libxcomposite1 \
-    libxdamage1 \
-    libgbm-dev \
-    libcups2 \
-    libcairo2 \
-    libpango-1.0-0 \
-    libatk-bridge2.0-0 \
-    fonts-liberation \
-    fonts-noto-color-emoji \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Find actual chromium path
-RUN which chromium || which chromium-browser || ls -la /usr/bin/chrom* || true
+# Install Node.js 20
+RUN apt-get update && apt-get install -y curl && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-
-# Skip all browser downloads
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-ENV REMOTION_CHROME_EXECUTABLE_PATH=/usr/bin/chromium
 
 # Copy package files
 COPY package*.json ./
 
-# Install deps without scripts (skip browser downloads)
-RUN npm install --ignore-scripts
+# Install deps
+RUN npm install
 
-# Copy source files
+# Copy source
 COPY . .
 
-# Create output directory
+# Create output dir
 RUN mkdir -p /tmp/renders
 
-# Expose port
+# Set Chrome path to Playwright's Chrome
+ENV REMOTION_CHROME_EXECUTABLE_PATH=/ms-playwright/chromium-1140/chrome-linux/chrome
+
 EXPOSE 3000
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:3000/health || exit 1
 
-# Start server
 CMD ["node", "server.js"]
