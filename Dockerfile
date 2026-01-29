@@ -19,19 +19,23 @@ RUN apt-get update && apt-get install -y \
     libatk-bridge2.0-0 \
     fonts-liberation \
     fonts-noto-color-emoji \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Skip Chromium download, use system-installed version
+# Skip all browser downloads, use system Chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ENV REMOTION_CHROME_EXECUTABLE_PATH=/usr/bin/chromium
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+ENV CHROME_PATH=/usr/bin/chromium
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies (with puppeteer skip)
+RUN npm install --ignore-scripts
 
 # Copy source files
 COPY . .
