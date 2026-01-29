@@ -1,0 +1,28 @@
+{
+  "name": "remotion-render-server",
+  "version": "1.0.0",
+  "description": "Headless Remotion rendering server with HTTP API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "render": "npx remotion render",
+    "preview": "npx remotion preview"
+  },
+  "dependencies": {
+    "remotion": "4.0.242",
+    "@remotion/cli": "4.0.242",
+    "@remotion/renderer": "4.0.242",
+    "@remotion/bundler": "4.0.242",
+    "@remotion/tailwind": "4.0.242",
+    "express": "^4.21.2",
+    "uuid": "^11.0.5",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "@types/react": "^18.3.18",
+    "@types/express": "^5.0.0",
+    "tailwindcss": "^3.4.17"
+  }
+}
