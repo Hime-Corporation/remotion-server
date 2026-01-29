@@ -21,20 +21,6 @@ if (!fs.existsSync(OUTPUT_DIR)) {
 // Store render jobs
 const jobs = new Map();
 
-// Use system Chromium (installed via apt for ARM64 support)
-const chromePath = process.env.CHROMIUM_PATH || '/usr/bin/chromium';
-console.log('Using Chromium at:', chromePath);
-
-// Browser options for Remotion (Chrome 127+ needs --headless=new)
-function getBrowserOptions() {
-  return {
-    browserExecutable: chromePath,
-    chromiumOptions: {
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--headless=new'],
-    },
-  };
-}
-
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', version: '1.0.0' });
@@ -80,7 +66,6 @@ app.post('/render', async (req, res) => {
         serveUrl: bundled,
         id: compositionId,
         inputProps,
-        ...getBrowserOptions(),
       });
 
       await renderMedia({
@@ -89,7 +74,6 @@ app.post('/render', async (req, res) => {
         codec,
         outputLocation: outputPath,
         inputProps,
-        ...getBrowserOptions(),
         onProgress: ({ progress }) => {
           const job = jobs.get(jobId);
           if (job) {
@@ -188,7 +172,6 @@ app.post('/render/quick', async (req, res) => {
       serveUrl: bundled,
       id: compositionId,
       inputProps,
-      ...getBrowserOptions(),
     });
 
     await renderMedia({
@@ -197,7 +180,6 @@ app.post('/render/quick', async (req, res) => {
       codec,
       outputLocation: outputPath,
       inputProps,
-      ...getBrowserOptions(),
     });
 
     res.download(outputPath, `${compositionId}-${jobId}.${outputFormat}`, () => {

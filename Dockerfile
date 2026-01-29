@@ -1,22 +1,33 @@
 FROM node:20-bookworm
 
-# Install Chromium from apt (has ARM64 support) + dependencies
+# Install Linux dependencies for Chrome Headless Shell
 RUN apt-get update && apt-get install -y \
-    chromium \
+    libnss3 \
+    libdbus-1-3 \
+    libatk1.0-0 \
+    libasound2 \
+    libxrandr2 \
+    libxkbcommon0 \
+    libxfixes3 \
+    libxcomposite1 \
+    libxdamage1 \
+    libgbm1 \
+    libpango-1.0-0 \
+    libcairo2 \
+    libatspi2.0-0 \
+    libcups2 \
     fonts-liberation \
     fonts-noto-color-emoji \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Skip Puppeteer's bundled Chromium download and use system Chromium
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
-ENV CHROMIUM_PATH=/usr/bin/chromium
-
 WORKDIR /app
 
 COPY package*.json ./
 RUN npm install
+
+# Let Remotion download its Chrome Headless Shell (supports ARM64)
+RUN npx remotion browser ensure
 
 COPY . .
 
