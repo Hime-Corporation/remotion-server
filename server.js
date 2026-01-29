@@ -1,6 +1,6 @@
 const express = require('express');
 const { bundle } = require('@remotion/bundler');
-const { renderMedia, selectComposition, ensureBrowser } = require('@remotion/renderer');
+const { renderMedia, selectComposition } = require('@remotion/renderer');
 const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
@@ -13,21 +13,6 @@ app.use(express.json({ limit: '10mb' }));
 const PORT = process.env.PORT || 3000;
 const OUTPUT_DIR = process.env.OUTPUT_DIR || '/tmp/renders';
 const CHROME_PATH = process.env.REMOTION_CHROME_EXECUTABLE_PATH || '/usr/bin/chromium';
-const CHROME_ARGS = ['--headless=new', '--no-sandbox', '--disable-setuid-sandbox'];
-
-// Ensure browser is available without downloading
-(async () => {
-  try {
-    await ensureBrowser({
-      browserExecutable: CHROME_PATH,
-        chromiumOptions: { args: CHROME_ARGS },
-      shouldDownloadBrowser: false,
-    });
-    console.log('✅ Browser configured:', CHROME_PATH);
-  } catch (e) {
-    console.log('Browser setup skipped:', e.message);
-  }
-})();
 
 // Ensure output directory exists
 if (!fs.existsSync(OUTPUT_DIR)) {
@@ -37,27 +22,19 @@ if (!fs.existsSync(OUTPUT_DIR)) {
 // Store render jobs
 const jobs = new Map();
 
+// Common browser options for Remotion v4 with Chrome 127+
+const browserOptions = {
+  browserExecutable: CHROME_PATH,
+  headless: true,
+  chromiumOptions: {
+    headless: "shell",  // Use chrome-headless-shell mode
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+  },
+};
+
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', version: '1.0.0' });
-});
-
-// List available compositions
-app.get('/compositions', async (req, res) => {
-  try {
-    const bundled = await bundle({
-      entryPoint: path.join(__dirname, 'src/index.ts'),
-      webpackOverride: (config) => config,
-    });
-    
-    // Return available composition IDs
-    res.json({
-      compositions: ['ChatDemo', 'TitleCard', 'CustomComp'],
-      bundlePath: bundled
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  res.json({ status: 'ok', version: '1.0.0', chromePath: CHROME_PATH });
 });
 
 // Start a render job
@@ -67,16 +44,11 @@ app.post('/render', async (req, res) => {
     inputProps = {},
     codec = 'h264',
     outputFormat = 'mp4',
-    width,
-    height,
-    fps,
-    durationInFrames
   } = req.body;
 
   const jobId = uuidv4();
   const outputPath = path.join(OUTPUT_DIR, `${jobId}.${outputFormat}`);
 
-  // Initialize job
   jobs.set(jobId, {
     id: jobId,
     status: 'queued',
@@ -105,27 +77,16 @@ app.post('/render', async (req, res) => {
         serveUrl: bundled,
         id: compositionId,
         inputProps,
-        browserExecutable: CHROME_PATH,
-        chromiumOptions: { args: CHROME_ARGS },
+        ...browserOptions,
       });
 
-      // Override composition settings if provided
-      const finalComposition = {
-        ...composition,
-        ...(width && { width }),
-        ...(height && { height }),
-        ...(fps && { fps }),
-        ...(durationInFrames && { durationInFrames })
-      };
-
       await renderMedia({
-        composition: finalComposition,
+        composition,
         serveUrl: bundled,
         codec,
         outputLocation: outputPath,
         inputProps,
-        browserExecutable: CHROME_PATH,
-        chromiumOptions: { args: CHROME_ARGS },
+        ...browserOptions,
         onProgress: ({ progress }) => {
           const job = jobs.get(jobId);
           if (job) {
@@ -189,23 +150,20 @@ app.get('/jobs', (req, res) => {
   res.json({ jobs: allJobs });
 });
 
-// Delete a job and its file
+// Delete a job
 app.delete('/jobs/:jobId', (req, res) => {
   const job = jobs.get(req.params.jobId);
   if (!job) {
     return res.status(404).json({ error: 'Job not found' });
   }
-  
-  // Delete file if exists
   if (fs.existsSync(job.outputPath)) {
     fs.unlinkSync(job.outputPath);
   }
-  
   jobs.delete(req.params.jobId);
   res.json({ deleted: true });
 });
 
-// Quick render endpoint - renders and returns file directly
+// Quick render - sync
 app.post('/render/quick', async (req, res) => {
   const {
     compositionId = 'ChatDemo',
@@ -227,8 +185,7 @@ app.post('/render/quick', async (req, res) => {
       serveUrl: bundled,
       id: compositionId,
       inputProps,
-      browserExecutable: CHROME_PATH,
-        chromiumOptions: { args: CHROME_ARGS },
+      ...browserOptions,
     });
 
     await renderMedia({
@@ -237,12 +194,10 @@ app.post('/render/quick', async (req, res) => {
       codec,
       outputLocation: outputPath,
       inputProps,
-      browserExecutable: CHROME_PATH,
-        chromiumOptions: { args: CHROME_ARGS },
+      ...browserOptions,
     });
 
-    res.download(outputPath, `${compositionId}-${jobId}.${outputFormat}`, (err) => {
-      // Cleanup after download
+    res.download(outputPath, `${compositionId}-${jobId}.${outputFormat}`, () => {
       if (fs.existsSync(outputPath)) {
         fs.unlinkSync(outputPath);
       }
@@ -256,6 +211,5 @@ app.post('/render/quick', async (req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🎬 Remotion Render Server running on port ${PORT}`);
-  console.log(`   Health: http://localhost:${PORT}/health`);
-  console.log(`   Render: POST http://localhost:${PORT}/render`);
+  console.log(`   Chrome: ${CHROME_PATH}`);
 });
