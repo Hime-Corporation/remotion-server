@@ -15,7 +15,6 @@
     "@remotion/renderer": "4.0.242",
     "@remotion/bundler": "4.0.242",
     "@remotion/tailwind": "4.0.242",
-    "@sparticuz/chromium": "^135.0.0",
     "express": "^4.21.2",
     "uuid": "^11.0.5",
     "cors": "^2.8.5"
