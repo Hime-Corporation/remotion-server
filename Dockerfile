@@ -1,27 +1,41 @@
-# Use Debian Bullseye which has older Chromium (supports old headless)
-FROM node:20-bullseye
+FROM node:20-bookworm
 
-# Install Chromium and dependencies
+# Install Linux dependencies for Chrome Headless Shell (NOT Chrome itself)
+# See: https://remotion.dev/docs/miscellaneous/linux-dependencies
 RUN apt-get update && apt-get install -y \
-    chromium \
+    libnss3 \
+    libdbus-1-3 \
+    libatk1.0-0 \
+    libasound2 \
+    libxrandr2 \
+    libxkbcommon0 \
+    libxfixes3 \
+    libxcomposite1 \
+    libxdamage1 \
+    libgbm1 \
+    libpango-1.0-0 \
+    libcairo2 \
+    libatspi2.0-0 \
+    libcups2 \
     fonts-liberation \
     fonts-noto-color-emoji \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Check chromium version
-RUN chromium --version || true
-
 WORKDIR /app
 
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-ENV REMOTION_CHROME_EXECUTABLE_PATH=/usr/bin/chromium
-
+# Copy package files
 COPY package*.json ./
+
+# Install dependencies
 RUN npm install
 
+# Let Remotion download Chrome Headless Shell for ARM64
+RUN npx remotion browser ensure
+
+# Copy source
 COPY . .
+
 RUN mkdir -p /tmp/renders
 
 EXPOSE 3000

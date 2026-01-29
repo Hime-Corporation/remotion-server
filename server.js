@@ -12,7 +12,6 @@ app.use(express.json({ limit: '10mb' }));
 
 const PORT = process.env.PORT || 3000;
 const OUTPUT_DIR = process.env.OUTPUT_DIR || '/tmp/renders';
-const CHROME_PATH = process.env.REMOTION_CHROME_EXECUTABLE_PATH || '/usr/bin/chromium';
 
 // Ensure output directory exists
 if (!fs.existsSync(OUTPUT_DIR)) {
@@ -22,18 +21,16 @@ if (!fs.existsSync(OUTPUT_DIR)) {
 // Store render jobs
 const jobs = new Map();
 
-// Browser options for older Chromium (Bullseye has Chromium ~90)
+// Let Remotion manage browser (uses Chrome Headless Shell for ARM64)
 const browserOptions = {
-  browserExecutable: CHROME_PATH,
   chromiumOptions: {
-    headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
   },
 };
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', version: '1.0.0', chromePath: CHROME_PATH });
+  res.json({ status: 'ok', version: '1.0.0' });
 });
 
 // Start a render job
@@ -210,5 +207,4 @@ app.post('/render/quick', async (req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🎬 Remotion Render Server running on port ${PORT}`);
-  console.log(`   Chrome: ${CHROME_PATH}`);
 });
