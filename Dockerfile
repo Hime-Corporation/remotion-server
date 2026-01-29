@@ -1,7 +1,6 @@
 FROM node:20-bookworm
 
-# Install Linux dependencies for Chrome Headless Shell (NOT Chrome itself)
-# See: https://remotion.dev/docs/miscellaneous/linux-dependencies
+# Install Linux dependencies for Chrome Headless Shell
 RUN apt-get update && apt-get install -y \
     libnss3 \
     libdbus-1-3 \
@@ -24,17 +23,14 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy all files first
+COPY . .
 
 # Install dependencies
 RUN npm install
 
-# Let Remotion download Chrome Headless Shell for ARM64
+# Now ensure browser is downloaded (after npm install)
 RUN npx remotion browser ensure
-
-# Copy source
-COPY . .
 
 RUN mkdir -p /tmp/renders
 
