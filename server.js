@@ -22,13 +22,12 @@ if (!fs.existsSync(OUTPUT_DIR)) {
 // Store render jobs
 const jobs = new Map();
 
-// Common browser options for Remotion v4 with Chrome 127+
+// Common browser options for Remotion v4 with Chromium 127+
 const browserOptions = {
   browserExecutable: CHROME_PATH,
-  headless: true,
   chromiumOptions: {
-    headless: "shell",  // Use chrome-headless-shell mode
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+    headless: true,
+    args: ['--headless=new', '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
   },
 };
 
