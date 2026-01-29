@@ -10,11 +10,11 @@
     "preview": "npx remotion preview"
   },
   "dependencies": {
-    "remotion": "4.0.242",
-    "@remotion/cli": "4.0.242",
-    "@remotion/renderer": "4.0.242",
-    "@remotion/bundler": "4.0.242",
-    "@remotion/tailwind": "4.0.242",
+    "remotion": "4.0.315",
+    "@remotion/cli": "4.0.315",
+    "@remotion/renderer": "4.0.315",
+    "@remotion/bundler": "4.0.315",
+    "@remotion/tailwind": "4.0.315",
     "express": "^4.21.2",
     "uuid": "^11.0.5",
     "cors": "^2.8.5"
