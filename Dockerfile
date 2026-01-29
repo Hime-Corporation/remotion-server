@@ -23,14 +23,10 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Copy all files first
-COPY . .
-
-# Install dependencies
+COPY package*.json ./
 RUN npm install
 
-# Now ensure browser is downloaded (after npm install)
-RUN npx remotion browser ensure
+COPY . .
 
 RUN mkdir -p /tmp/renders
 
