@@ -26,9 +26,6 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-# Pre-download Chromium for Remotion
-RUN npx remotion browser ensure
-
 COPY . .
 
 RUN mkdir -p /tmp/renders
